@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>สร้างข้อความสมัคร Member</title>
+  <style>
+    :root { --primary:#1e3a8a; --accent:#0ea5e9; --bg:#f8fafc; --card:#ffffff; --text:#0f172a; }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", "Noto Sans", sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    .container { max-width: 720px; margin: 48px auto; padding: 0 16px; }
+    .card { background: var(--card); border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; box-shadow: 0 6px 20px rgba(2,6,23,0.06); }
+    h1 { margin: 0 0 16px; font-size: 1.5rem; color: var(--primary); }
+    p.hint { margin: 0 0 24px; color:#475569; }
+    .row { display: grid; gap: 10px; margin-bottom: 16px; }
+    label { font-weight: 600; }
+    input, textarea {
+      width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(14,165,233,.15); }
+    textarea { resize: vertical; min-height: 140px; }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    button {
+      border: 0; padding: 11px 16px; border-radius: 999px; cursor: pointer; font-weight: 600;
+      background: var(--primary); color: #fff; transition: transform .05s ease, opacity .15s ease, background .2s ease;
+    }
+    button.secondary { background: #0f766e; }
+    button.ghost { background: #e2e8f0; color:#0f172a; }
+    button:active { transform: scale(0.98); }
+    .inline { display: flex; align-items: center; gap: 8px; }
+    .note { font-size: .9rem; color:#475569; }
+    .status { margin-left: auto; font-size: .9rem; color:#16a34a; opacity: 0; transition: opacity .2s; }
+    .status.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>สร้างข้อความสมัคร Member</h1>
+      <p class="hint">กรอกชื่อร้านค้า (SHOP) และอีเมล แล้วกด “สร้างข้อความ” ข้อความจะถูกจัดรูปแบบอัตโนมัติ</p>
+
+      <div class="row">
+        <label for="shop">SHOP (สำหรับพิมพ์ชื่อร้านค้า)</label>
+        <input id="shop" type="text" placeholder="เช่น TE1, TW4, 26ET หรือชื่อร้านค้า..." autocomplete="organization"/>
+      </div>
+
+      <div class="row">
+        <label for="email" class="inline">
+          <span>Email / 电子邮件</span>
+          <span class="note">(หน้าช่องแสดง 2 ภาษา: อังกฤษ + จีน)</span>
+        </label>
+        <input id="email" type="email" placeholder="example@domain.com" autocomplete="email"/>
+      </div>
+
+      <div class="btns">
+        <button id="generateBtn" title="สร้างข้อความตามรูปแบบ">สร้างข้อความ</button>
+        <button id="copyBtn" class="secondary" title="คัดลอกข้อความในกล่องด้านล่าง">คัดลอกข้อความ</button>
+        <button id="clearBtn" class="ghost" title="ล้างข้อมูลทั้งหมด">Clear</button>
+        <span id="status" class="status">คัดลอกแล้ว ✓</span>
+      </div>
+
+      <div class="row" style="margin-top:18px;">
+        <label for="output">ผลลัพธ์ข้อความ</label>
+        <textarea id="output" readonly placeholder="ผลลัพธ์จะปรากฏที่นี่หลังจากกด ‘สร้างข้อความ’"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const elShop = document.getElementById('shop');
+    const elEmail = document.getElementById('email');
+    const elOutput = document.getElementById('output');
+    const btnGenerate = document.getElementById('generateBtn');
+    const btnCopy = document.getElementById('copyBtn');
+    const btnClear = document.getElementById('clearBtn');
+    const statusEl = document.getElementById('status');
+
+    function buildMessage() {
+      const shop = (elShop.value || '').trim();
+      const email = (elEmail.value || '').trim();
+
+      if (!shop) {
+        alert('กรุณากรอก SHOP');
+        elShop.focus();
+        return;
+      }
+      if (!email) {
+        alert('กรุณากรอก Email');
+        elEmail.focus();
+        return;
+      }
+      // แปลงตัวอักษรอังกฤษให้เป็นพิมพ์ใหญ่ (ภาษาอื่นๆ จะไม่เปลี่ยน)
+      const shopUpper = shop.toUpperCase();
+
+      const lines = [
+        `SHOP ${shopUpper}`,
+        `สมัครMember ค่ะ`,
+        `Email ${email}`,
+        `ขอบคุณ ค่ะ`
+      ];
+      elOutput.value = lines.join('\n');
+    }
+
+    async function copyOutput() {
+      const text = elOutput.value.trim();
+      if (!text) {
+        alert('ยังไม่มีข้อความสำหรับคัดลอก กรุณากด “สร้างข้อความ” ก่อน');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        statusEl.textContent = 'คัดลอกแล้ว ✓';
+        statusEl.classList.add('show');
+        setTimeout(() => statusEl.classList.remove('show'), 1400);
+      } catch (e) {
+        // เผื่อบางเบราว์เซอร์ไม่อนุญาต clipboard API
+        elOutput.select();
+        document.execCommand('copy');
+        statusEl.textContent = 'คัดลอกแล้ว ✓';
+        statusEl.classList.add('show');
+        setTimeout(() => statusEl.classList.remove('show'), 1400);
+      }
+    }
+
+    function clearAll() {
+      elShop.value = '';
+      elEmail.value = '';
+      elOutput.value = '';
+      elShop.focus();
+    }
+
+    btnGenerate.addEventListener('click', buildMessage);
+    btnCopy.addEventListener('click', copyOutput);
+    btnClear.addEventListener('click', clearAll);
+
+    // กด Enter ในช่องกรอกให้ทำงานเร็วขึ้น
+    elShop.addEventListener('keydown', (e) => { if (e.key === 'Enter') buildMessage(); });
+    elEmail.addEventListener('keydown', (e) => { if (e.key === 'Enter') buildMessage(); });
+  </script>
+</body>
+</html>
